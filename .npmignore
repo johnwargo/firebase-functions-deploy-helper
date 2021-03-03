@@ -1,0 +1,7 @@
+# Folders
+node_modules/
+src/
+
+# Files
+package-lock.json
+tsconfig.json

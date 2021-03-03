@@ -1,0 +1,27 @@
+{
+  "name": "firebase-functions-deploy",
+  "version": "0.0.1",
+  "description": "Helps simplify deployment of a subset of Firebase Functions (because of quota limits)",
+  "main": "ffdh.js",
+  "bin": {
+    "ffdh": "ffdh.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc && node ./ffdh.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johnwargo/firebase-functions-deploy.git"
+  },
+  "keywords": [
+    "firebase",
+    "npm"
+  ],
+  "author": "JOhn M. Wargo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/johnwargo/firebase-functions-deploy/issues"
+  },
+  "homepage": "https://github.com/johnwargo/firebase-functions-deploy#readme"
+}

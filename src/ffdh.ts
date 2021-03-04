@@ -113,8 +113,11 @@ console.log(`Version: ${packageDotJSON.version}`);
 
 // Get the version number from the package.json file
 program.version(packageDotJSON.version);
-program.option('-d, --debug', 'Output extra information during operation');
-program.option('-u, --update', 'Update the Assets definition in the pubspec.yaml file');
+program.option('-e,', 'Search the end of function names');
+program.option('-i,', '');
+program.option('-s,', '');
+program.option('-%', '');
+program.option('--debug', 'Output extra information during operation');
 
 if (isValidConfig()) {
     // Process the command line arguments

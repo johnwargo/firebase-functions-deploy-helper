@@ -92,12 +92,12 @@ function isValidConfig() {
 }
 console.log(APP_NAME);
 console.log(APP_AUTHOR);
-console.log("Version: " + packageDotJSON.version);
+console.log("Version: " + packageDotJSON.version + "\n");
 program.version(packageDotJSON.version);
-program.option('-e,', 'Search the end of function names');
-program.option('-i,', '');
-program.option('-s,', '');
-program.option('-%', '');
+program.option('-s, --start <searchStr>', 'Search function name start for <string>');
+program.option('-e, --end <searchStr>', 'Search function name end for <string>');
+program.option('-p, -% <percentage>', '');
+program.option('-i, --iteration <iteration>', '');
 program.option('-d, --debug', 'Output extra information during operation');
 program.parse(process.argv);
 var options = program.opts();
@@ -111,7 +111,4 @@ else {
 log.debug(program.opts());
 if (isValidConfig()) {
     console.log('woohoo!');
-}
-else {
-    console.log(chalk.red('Exiting'));
 }

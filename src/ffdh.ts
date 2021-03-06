@@ -102,15 +102,7 @@ function isValidConfig(): Boolean {
       log.info(EXIT_HEADING + ` Unable to locate the ${filePath} folder\n`);
       return false;
     } else {
-      log.info(`Located ${filePath}`);
-      const modulePath = path.join(filePath, 'src', 'index.ts');
-      import(modulePath)
-        .then(obj => {
-          console.dir(obj);
-        })
-        .catch(err => {
-          console.dir(err);
-        });
+      log.info(`Located ${filePath}`);     
     }
   } else {
     log.info(EXIT_HEADING + ' Unable to determine the Functions source folder\n');

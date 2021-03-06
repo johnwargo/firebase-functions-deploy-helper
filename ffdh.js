@@ -1,6 +1,24 @@
 #!/usr/bin/env node
 "use strict";
-var boxen = require('boxen');
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var chalk = require('chalk');
 var fs = require('fs');
 var logger = require('cli-logger');
@@ -13,6 +31,7 @@ var APP_AUTHOR = 'by John M. Wargo (https://johnwargo.com)';
 var CURRENT_PATH = process.cwd();
 var EXIT_HEADING = chalk.red('Exiting:');
 var firebaseConfigFile = 'firebase.json';
+var functionsFile = 'functions.json';
 var log = logger();
 function checkFile(filePath) {
     log.debug("checkFile(" + filePath + ")");
@@ -46,8 +65,18 @@ function checkDirectory(filePath) {
     }
 }
 function isValidConfig() {
-    log.info(chalk.yellow('\nValidating Firebase project'));
-    var filePath = path.join(CURRENT_PATH, firebaseConfigFile);
+    log.info(chalk.yellow('Validating Firebase project'));
+    var filePath = path.join(CURRENT_PATH, functionsFile);
+    if (!checkFile(filePath)) {
+        log.info(EXIT_HEADING + (" Unable to locate the " + filePath + " file\n"));
+        return false;
+    }
+    else {
+        log.info("Located " + filePath);
+        var functionsList = require(filePath);
+        console.log(functionsList);
+    }
+    filePath = path.join(CURRENT_PATH, firebaseConfigFile);
     if (!checkFile(filePath)) {
         log.info(EXIT_HEADING + (" Unable to locate the " + filePath + " file\n"));
         return false;
@@ -56,9 +85,9 @@ function isValidConfig() {
         log.info("Located " + filePath);
     }
     var firebaseConfig = require("./" + firebaseConfigFile);
-    var functionsPath = firebaseConfig.functions.source;
-    if (functionsPath) {
-        filePath = path.join(CURRENT_PATH, functionsPath);
+    var sourceStr = firebaseConfig.functions.source;
+    if (sourceStr) {
+        filePath = path.join(CURRENT_PATH, sourceStr);
         console.log("Determined Firebase functions folder: " + filePath);
         if (!checkDirectory(filePath)) {
             log.info(EXIT_HEADING + (" Unable to locate the " + filePath + " folder\n"));
@@ -66,10 +95,17 @@ function isValidConfig() {
         }
         else {
             log.info("Located " + filePath);
+            var modulePath = path.join(filePath, 'src', 'index.ts');
+            Promise.resolve().then(function () { return __importStar(require(modulePath)); }).then(function (obj) {
+                console.dir(obj);
+            })
+                .catch(function (err) {
+                console.dir(err);
+            });
         }
     }
     else {
-        log.info(EXIT_HEADING + (" Unable to locate the " + filePath + " folder\n"));
+        log.info(EXIT_HEADING + ' Unable to determine the Functions source folder\n');
         return false;
     }
     var res = shell.which('firebase');

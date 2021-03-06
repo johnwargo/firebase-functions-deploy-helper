@@ -9,8 +9,11 @@
  * deploying my functions
  **********************************************************/
 
+// How to get a list of exported functions
+// https://stackoverflow.com/questions/25529290/node-js-module-how-to-get-list-of-exported-functions
+
 // modules
-const boxen = require('boxen');
+// const boxen = require('boxen');
 const chalk = require('chalk');
 const fs = require('fs');
 const logger = require('cli-logger');
@@ -28,6 +31,7 @@ const APP_AUTHOR = 'by John M. Wargo (https://johnwargo.com)';
 const CURRENT_PATH = process.cwd();
 const EXIT_HEADING = chalk.red('Exiting:');
 const firebaseConfigFile = 'firebase.json';
+const functionsFile = 'functions.json';
 
 var log = logger();
 
@@ -66,31 +70,50 @@ function isValidConfig(): Boolean {
   // Make sure this is a Flutter project
   log.info(chalk.yellow('Validating Firebase project'));
 
-  // Does the config file exist?
-  let filePath = path.join(CURRENT_PATH, firebaseConfigFile);
+  // Does the functions list exist?
+  let filePath = path.join(CURRENT_PATH, functionsFile);
   if (!checkFile(filePath)) {
     log.info(EXIT_HEADING + ` Unable to locate the ${filePath} file\n`);
     return false;
   } else {
     log.info(`Located ${filePath}`);
+    const functionsList = require(filePath);
+    console.log(functionsList);
   }
 
+  // Does the config file exist?
+  filePath = path.join(CURRENT_PATH, firebaseConfigFile);
+  if (!checkFile(filePath)) {
+    log.info(EXIT_HEADING + ` Unable to locate the ${filePath} file\n`);
+    return false;
+  } else {
+    log.info(`Located ${filePath}`);    
+  }
+  
   // load the Firebase config file
   const firebaseConfig = require(`./${firebaseConfigFile}`);
   // get the path for the functions folder
-  const functionsPath = firebaseConfig.functions.source;
-  if (functionsPath) {
+  const sourceStr = firebaseConfig.functions.source;
+  if (sourceStr) {
     // does the path exist?
-    filePath = path.join(CURRENT_PATH, functionsPath);
+    filePath = path.join(CURRENT_PATH, sourceStr);
     console.log(`Determined Firebase functions folder: ${filePath}`);
     if (!checkDirectory(filePath)) {
       log.info(EXIT_HEADING + ` Unable to locate the ${filePath} folder\n`);
       return false;
     } else {
       log.info(`Located ${filePath}`);
+      const modulePath = path.join(filePath, 'src', 'index.ts');
+      import(modulePath)
+        .then(obj => {
+          console.dir(obj);
+        })
+        .catch(err => {
+          console.dir(err);
+        });
     }
   } else {
-    log.info(EXIT_HEADING + ` Unable to locate the ${filePath} folder\n`);
+    log.info(EXIT_HEADING + ' Unable to determine the Functions source folder\n');
     return false;
   }
 
@@ -134,4 +157,4 @@ log.debug(program.opts());
 
 if (isValidConfig()) {
   console.log('woohoo!');
-} 
+}

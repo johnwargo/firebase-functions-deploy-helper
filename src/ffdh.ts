@@ -26,7 +26,7 @@ const shell = require('shelljs');
 const packageDotJSON = require('./package.json');
 
 // constants
-const APP_NAME = 'Firebase Functions Deployment Helper (ffdh)';
+const APP_NAME = '\nFirebase Functions Deployment Helper (ffdh)';
 const APP_AUTHOR = 'by John M. Wargo (https://johnwargo.com)';
 const CURRENT_PATH = process.cwd();
 const EXIT_HEADING = chalk.red('Exiting:');
@@ -68,23 +68,22 @@ function checkDirectory(filePath: string): boolean {
 
 function isValidConfig(): Boolean {
   // Make sure this is a Flutter project
-  log.info(chalk.yellow('Validating Firebase project'));
+  log.info(chalk.yellow('\nValidating Firebase project'));
 
   // Does the functions list exist?
   let filePath = path.join(CURRENT_PATH, functionsFile);
   if (!checkFile(filePath)) {
-    log.info(EXIT_HEADING + ` Unable to locate the ${filePath} file\n`);
+    log.info(`${EXIT_HEADING} Unable to locate the ${filePath} file\n`);
     return false;
   } else {
     log.info(`Located ${filePath}`);
     const functionsList = require(filePath);
-    console.log(functionsList);
   }
 
   // Does the config file exist?
   filePath = path.join(CURRENT_PATH, firebaseConfigFile);
   if (!checkFile(filePath)) {
-    log.info(EXIT_HEADING + ` Unable to locate the ${filePath} file\n`);
+    log.info(`${EXIT_HEADING} Unable to locate the ${filePath} file\n`);
     return false;
   } else {
     log.info(`Located ${filePath}`);    
@@ -99,13 +98,13 @@ function isValidConfig(): Boolean {
     filePath = path.join(CURRENT_PATH, sourceStr);
     console.log(`Determined Firebase functions folder: ${filePath}`);
     if (!checkDirectory(filePath)) {
-      log.info(EXIT_HEADING + ` Unable to locate the ${filePath} folder\n`);
+      log.info(`${EXIT_HEADING} Unable to locate the ${filePath} folder\n`);
       return false;
     } else {
       log.info(`Located ${filePath}`);     
     }
   } else {
-    log.info(EXIT_HEADING + ' Unable to determine the Functions source folder\n');
+    log.info(EXIT_HEADING + '${EXIT_HEADING} Unable to determine the Functions source folder\n');
     return false;
   }
 
@@ -129,7 +128,7 @@ function isValidConfig(): Boolean {
 
 console.log(APP_NAME);
 console.log(APP_AUTHOR);
-console.log(`Version: ${packageDotJSON.version}\n`);
+console.log(`Version: ${packageDotJSON.version}`);
 program.version(packageDotJSON.version);
 program.option('-s, --start <searchStr>', 'Search function name start for <string>');
 program.option('-e, --end <searchStr>', 'Search function name end for <string>');
@@ -139,7 +138,7 @@ program.option('-d, --debug', 'Output extra information during operation');
 program.parse(process.argv);
 const options = program.opts();
 if (options.debug) {
-  console.log('Enabling debug mode');
+  console.log('\nEnabling debug mode');
   log.level(log.DEBUG);
 } else {
   log.level(log.INFO);
@@ -148,5 +147,5 @@ if (options.debug) {
 log.debug(program.opts());
 
 if (isValidConfig()) {
-  console.log('woohoo!');
+
 }

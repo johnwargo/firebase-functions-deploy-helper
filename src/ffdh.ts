@@ -138,24 +138,17 @@ function processPercentage(percentage: number, iteration: number): string {
 }
 
 function processSearch(start: string, end: string): string {
-
-  log.debug(`Start: ${start}`);
-  log.debug(`End: ${end}`);
-
   let resultsArray: string[] = [];
   if (start && end) {
-    log.debug('Start and End');
     resultsArray = functionsList.filter((func: string) => {
       return func.startsWith(start) && func.endsWith(end);
     });
   } else {
     if (start) {
-      log.debug('Start');
       resultsArray = functionsList.filter((func: string) => {
         return func.startsWith(start);
       });
     } else {
-      log.debug('End');
       resultsArray = functionsList.filter((func: string) => {
         return func.endsWith(end);
       });

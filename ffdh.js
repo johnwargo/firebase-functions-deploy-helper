@@ -110,24 +110,19 @@ function processPercentage(percentage, iteration) {
     return '';
 }
 function processSearch(start, end) {
-    log.debug("Start: " + start);
-    log.debug("End: " + end);
     var resultsArray = [];
     if (start && end) {
-        log.debug('Start and End');
         resultsArray = functionsList.filter(function (func) {
             return func.startsWith(start) && func.endsWith(end);
         });
     }
     else {
         if (start) {
-            log.debug('Start');
             resultsArray = functionsList.filter(function (func) {
                 return func.startsWith(start);
             });
         }
         else {
-            log.debug('End');
             resultsArray = functionsList.filter(function (func) {
                 return func.endsWith(end);
             });

@@ -106,7 +106,23 @@ function isValidConfig() {
         return false;
     }
 }
-function processPercentage(percentage, iteration) {
+function processPercentage(pct, iteration) {
+    log.info("processPercentage(" + pct + ", " + iteration + ")");
+    var start, end;
+    var batchSize = Math.floor(functionsList.length * pct);
+    var remainder = functionsList.length % batchSize;
+    log.info("Function Count: " + functionsList.length);
+    log.info("Remainder: " + remainder);
+    if (iteration <= remainder) {
+        batchSize += 1;
+    }
+    log.info("Batch size: " + batchSize);
+    start = batchSize * (iteration - 1);
+    if (iteration > remainder) {
+        start += remainder;
+    }
+    end = start + batchSize - 1;
+    log.info("Returning from " + start + " to " + end);
     return '';
 }
 function processSearch(start, end) {
@@ -151,18 +167,27 @@ else {
 }
 log.debug(options);
 if (isValidConfig()) {
-    var functionList = void 0;
+    var strFunctionList = void 0;
     if (options.percentage) {
-        if (!options.iteration) {
-            options.iteration = 1;
+        options.iteration = options.iteration ? options.iteration : "1";
+        var pct = parseInt(options.percentage, 10);
+        var iter = parseInt(options.iteration, 10);
+        if (pct < 1 || pct > 100) {
+            log.info(chalk.red("\nInvalid percentage value: " + pct + " (Must be 1-100)"));
+            process.exit(1);
         }
-        functionList = processPercentage(options.percentage, options.iteration);
+        var ceiling = Math.ceil(100 / pct);
+        if (iter > ceiling) {
+            log.info(chalk.red("\nInvalid iteration value: " + iter + " (Must be 1-" + ceiling + ")"));
+            process.exit(1);
+        }
+        strFunctionList = processPercentage(pct / 100, iter);
     }
     else {
-        functionList = processSearch(options.start, options.end);
+        strFunctionList = processSearch(options.start, options.end);
     }
-    if (functionList.length > 0) {
-        var commandStr = COMMAND_ROOT + functionList;
+    if (strFunctionList.length > 0) {
+        var commandStr = COMMAND_ROOT + strFunctionList;
         if (options.debug) {
             log.info(commandStr);
         }

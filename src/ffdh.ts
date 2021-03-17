@@ -133,7 +133,29 @@ function isValidConfig(): Boolean {
   }
 }
 
-function processPercentage(percentage: number, iteration: number): string {
+function processPercentage(pct: number, iteration: number, iterations: number): string {
+
+  log.info(`processPercentage(${pct}, ${iteration}, ${iterations})`);
+
+  let start, end;
+  let batchSize = Math.floor(functionsList.length * pct);
+  const remainder = functionsList.length % batchSize;
+
+  log.info(`Function Count: ${functionsList.length}`);
+  log.info(`Remainder: ${remainder}`);
+
+  if (iteration <= remainder) {
+    batchSize += 1;
+  }
+  log.info(`Batch size: ${batchSize}`);
+  start = batchSize * (iteration - 1);
+
+  if (iteration > remainder) {
+    start += remainder;
+  }
+  end = start + batchSize - 1;
+  log.info(`Returning from ${start} to ${end}`);
+
   return '';
 }
 
@@ -181,19 +203,34 @@ if (options.debug) {
 log.debug(options);
 
 if (isValidConfig()) {
-  let functionList;
+
+  let strFunctionList: string;
+
   if (options.percentage) {
-    // do we have i and not p?
-    if (!options.iteration) {
-      options.iteration = 1;
+    // do we have i and not p? Set default iteration
+    options.iteration = options.iteration ? options.iteration : "1";
+    // get numeric values for our parameters
+    const pct = parseInt(options.percentage, 10);
+    const iter = parseInt(options.iteration, 10);
+    // Do we have a valid percentage?
+    if (pct < 1 || pct > 100) {
+      log.info(chalk.red(`\nInvalid percentage value: ${pct} (Must be 1-100)`));
+      process.exit(1);
     }
-    functionList = processPercentage(options.percentage, options.iteration);
+    // do we have a valid iteration?
+    const iterations = Math.ceil(100 / pct);
+    if (iter > iterations) {
+      log.info(chalk.red(`\nInvalid iteration value: ${iter} (Must be 1-${iterations})`));
+      process.exit(1);
+    }
+    // We got this far, we're good to go!
+    strFunctionList = processPercentage(pct / 100, iter, iterations);
   } else {
-    functionList = processSearch(options.start, options.end);
+    strFunctionList = processSearch(options.start, options.end);
   }
 
-  if (functionList.length > 0) {
-    const commandStr = COMMAND_ROOT + functionList
+  if (strFunctionList.length > 0) {
+    const commandStr = COMMAND_ROOT + strFunctionList
     if (options.debug) {
       log.info(commandStr);
     } else {

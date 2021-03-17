@@ -15,6 +15,7 @@
 // modules
 // const boxen = require('boxen');
 const chalk = require('chalk');
+const { exec } = require("child_process");
 const fs = require('fs');
 const logger = require('cli-logger');
 const path = require('path');
@@ -28,11 +29,14 @@ const packageDotJSON = require('./package.json');
 // constants
 const APP_NAME = '\nFirebase Functions Deployment Helper (ffdh)';
 const APP_AUTHOR = 'by John M. Wargo (https://johnwargo.com)';
+const COMMAND_ROOT = 'firebase deploy --only ';
 const CURRENT_PATH = process.cwd();
 const EXIT_HEADING = chalk.red('Exiting:');
-const firebaseConfigFile = 'firebase.json';
-const functionsFile = 'functions.json';
+const FIREBASE_CONFIG_FILE = 'firebase.json';
+const FUNCTIONS_FILE = 'functions.json';
+const FUNCTIONS_STRING = 'functions:';
 
+var functionsList: any;
 var log = logger();
 
 function checkFile(filePath: string): boolean {
@@ -70,27 +74,28 @@ function isValidConfig(): Boolean {
   // Make sure this is a Flutter project
   log.info(chalk.yellow('\nValidating Firebase project'));
 
-  // Does the functions list exist?
-  let filePath = path.join(CURRENT_PATH, functionsFile);
+  // Does the functions list exist?  
+  let filePath = path.join(CURRENT_PATH, FUNCTIONS_FILE);
   if (!checkFile(filePath)) {
     log.info(`${EXIT_HEADING} Unable to locate the ${filePath} file\n`);
     return false;
   } else {
     log.info(`Located ${filePath}`);
-    const functionsList = require(filePath);
+    functionsList = require(filePath);
   }
 
   // Does the config file exist?
-  filePath = path.join(CURRENT_PATH, firebaseConfigFile);
+  filePath = path.join(CURRENT_PATH, FIREBASE_CONFIG_FILE);
   if (!checkFile(filePath)) {
     log.info(`${EXIT_HEADING} Unable to locate the ${filePath} file\n`);
     return false;
   } else {
-    log.info(`Located ${filePath}`);    
+    log.info(`Located ${filePath}`);
   }
-  
+
   // load the Firebase config file
-  const firebaseConfig = require(`./${firebaseConfigFile}`);
+  log.debug(`Loading Firebase configuration file (${FIREBASE_CONFIG_FILE})`);
+  const firebaseConfig = require(`./${FIREBASE_CONFIG_FILE}`);
   // get the path for the functions folder
   const sourceStr = firebaseConfig.functions.source;
   if (sourceStr) {
@@ -101,7 +106,7 @@ function isValidConfig(): Boolean {
       log.info(`${EXIT_HEADING} Unable to locate the ${filePath} folder\n`);
       return false;
     } else {
-      log.info(`Located ${filePath}`);     
+      log.info(`Located ${filePath}`);
     }
   } else {
     log.info(EXIT_HEADING + '${EXIT_HEADING} Unable to determine the Functions source folder\n');
@@ -109,9 +114,11 @@ function isValidConfig(): Boolean {
   }
 
   // is the Firebase CLI installed?
+  log.debug('Looking for Firebase CLI command');
   let res = shell.which('firebase');
   if (res) {
     filePath = res.toString();
+    log.debug(`firebase command at ${filePath}`);
     if (!filePath) {
       log.info(EXIT_HEADING + ' Unable to locate the Firebase command\n');
       return false;
@@ -126,16 +133,50 @@ function isValidConfig(): Boolean {
   }
 }
 
+function processPercentage(percentage: number, iteration: number): string {
+  return '';
+}
+
+function processSearch(start: string, end: string): string {
+
+  log.debug(`Start: ${start}`);
+  log.debug(`End: ${end}`);
+
+  let resultsArray: string[] = [];
+  if (start && end) {
+    log.debug('Start and End');
+    resultsArray = functionsList.filter((func: string) => {
+      return func.startsWith(start) && func.endsWith(end);
+    });
+  } else {
+    if (start) {
+      log.debug('Start');
+      resultsArray = functionsList.filter((func: string) => {
+        return func.startsWith(start);
+      });
+    } else {
+      log.debug('End');
+      resultsArray = functionsList.filter((func: string) => {
+        return func.endsWith(end);
+      });
+    }
+  }
+  // Add 'functions:' to the beginning of every function name
+  resultsArray = resultsArray.map(func => FUNCTIONS_STRING + func);
+  // split the array into a comma-separated list
+  return resultsArray.join(',');
+}
+
 console.log(APP_NAME);
 console.log(APP_AUTHOR);
 console.log(`Version: ${packageDotJSON.version}`);
 program.version(packageDotJSON.version);
-program.option('-s, --start <searchStr>', 'Search function name start for <string>');
-program.option('-e, --end <searchStr>', 'Search function name end for <string>');
-program.option('-p, -% <percentage>', '');
-program.option('-i, --iteration <iteration>', '');
+program.option('-s, --start <searchStr>', 'Search start of function name for <string>');
+program.option('-e, --end <searchStr>', 'Search end of function name for <string>');
+program.option('-p --percentage <percentage>', '');
+program.option('-i, --iteration <iteration>', '1');
 program.option('-d, --debug', 'Output extra information during operation');
-program.parse(process.argv);
+program.parse();
 const options = program.opts();
 if (options.debug) {
   console.log('\nEnabling debug mode');
@@ -144,8 +185,43 @@ if (options.debug) {
   log.level(log.INFO);
 }
 // Write the command line options to the console
-log.debug(program.opts());
+log.debug(options);
 
 if (isValidConfig()) {
+  let functionList;
+  if (options.percentage) {
+    // do we have i and not p?
+    if (!options.iteration) {
+      options.iteration = 1;
+    }
+    functionList = processPercentage(options.percentage, options.iteration);
+  } else {
+    functionList = processSearch(options.start, options.end);
+  }
+
+  if (functionList.length > 0) {
+    const commandStr = COMMAND_ROOT + functionList
+    if (options.debug) {
+      log.info(commandStr);
+    } else {
+      // execute the command
+      log.debug('Executing Firebase command');
+      exec(commandStr, (error: any, stdout: any, stderr: any) => {
+        if (error) {
+          log.error(`error: ${error.message}`);
+          // process.exit(1);
+        }
+        if (stderr) {
+          log.error(`stderr: ${stderr}`);
+          // process.exit(1);
+        }
+        log.info(`stdout: ${stdout}`);
+      });
+      // process.exit(0);
+    }
+  } else {
+    log.info(chalk.red('\nNo function match for specified options'));
+    process.exit(1);
+  }
 
 }

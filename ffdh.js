@@ -169,8 +169,8 @@ if (isValidConfig()) {
             process.exit(1);
         }
         var batch = parseInt(options.batch, 10);
-        if (batch > MAX_BATCHES) {
-            log.info(chalk.red("\nInvalid iteration value: " + batch + " (Must be 1-" + MAX_BATCHES + ")"));
+        if (batch < 1 || batch > batches) {
+            log.info(chalk.red("\nInvalid iteration value: " + batch + " (Must be 1-" + batches + ")"));
             process.exit(1);
         }
         strFunctionList = processBatch(batches, batch);
@@ -183,9 +183,22 @@ if (isValidConfig()) {
         strFunctionList = processSearch(options.start, options.end);
     }
     if (strFunctionList.length > 0) {
-        var shell_1 = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
-        shell_1.on('error', function (err) {
+        var cmd = spawn('firebase', ['deploy', '--only', strFunctionList]);
+        cmd.stdout.on('data', function (output) {
+            console.log('here1');
+            console.log(output.toString());
+        });
+        cmd.stderr.on('data', function (err) {
+            console.log('here2');
+            console.log(err.toString());
+        });
+        cmd.on('error', function (err) {
+            console.log('here3');
             log.error(err);
+        });
+        cmd.on('close', function (code) {
+            console.log('here4');
+            console.log(code);
         });
     }
     else {

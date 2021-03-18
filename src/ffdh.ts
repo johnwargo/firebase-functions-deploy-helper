@@ -164,9 +164,7 @@ function processSearch(start: string, end: string): string {
       });
     }
   }
-  // Add 'functions:' to the beginning of every function name
   resultsArray = resultsArray.map(func => FUNCTIONS_STRING + func);
-  // split the array into a comma-separated list
   return resultsArray.join(',');
 }
 
@@ -207,8 +205,8 @@ if (isValidConfig()) {
 
     // do we have a valid iteration?
     const batch = parseInt(options.batch, 10);
-    if (batch > MAX_BATCHES) {
-      log.info(chalk.red(`\nInvalid iteration value: ${batch} (Must be 1-${MAX_BATCHES})`));
+    if (batch < 1 || batch > batches) {
+      log.info(chalk.red(`\nInvalid iteration value: ${batch} (Must be 1-${batches})`));
       process.exit(1);
     }
     // We got this far, we're good to go!
@@ -225,9 +223,31 @@ if (isValidConfig()) {
 
   if (strFunctionList.length > 0) {
     // https://stackoverflow.com/questions/27458502/how-to-run-interactive-shell-command-inside-node-js
-    const shell = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
-    shell.on('error', (err: any) => {
+    // const shell = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
+    // shell.on('error', (err: any) => {
+    //   log.error(err);
+    // });
+
+    var cmd = spawn('firebase', ['deploy', '--only', strFunctionList]);
+    cmd.stdout.on('data', (output: any) => {
+      console.log('here1');
+      console.log(output.toString());
+    });
+
+    //Error handling
+    cmd.stderr.on('data', (err: any) => {
+      console.log('here2');
+      console.log(err.toString());
+    });
+
+    cmd.on('error', (err: any) => {
+      console.log('here3');
       log.error(err);
+    });
+
+    cmd.on('close', (code: string) => {
+      console.log('here4');
+      console.log(code);
     });
 
     // shell.on('close', (code: any) => { console.log('[shell] terminated :', code) });

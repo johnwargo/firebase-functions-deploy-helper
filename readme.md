@@ -23,7 +23,7 @@ I found that if I did a full deploy multiple times, it would randomly fail on a 
 firebase deploy --only functions
 ```
 
-Not the best solution, but it worked.
+Not the best solution, but it worked (most of the time); it just took too long for me.
 
 After a while, it occurred to me that I could automate some of this. My functions catalog is organized around my backend application's record types (companies, contacts, campaigns, etc.) so I thought first about using command files (`.cmd`, `.bat`, `.sh`) for the different groups, but that would be a pain to implement and maintain. I didn't want 10 `.cmd` and 10 `.sh` scripts hanging around in my project. Also, sometimes I'd modify all of the project's `get` functions, so that approach wouldn't work there.
 
@@ -42,11 +42,13 @@ To install the module, open a terminal window or command prompt and execute the 
 npm install -g ffdh
 ```
 
-
+This installs the `ffdh` command in the global scope.
 
 ## Initialization
 
+To operate, the `ffdh` command requires access to the list of functions in your project. I know I could parse the imports in the project's `functions/index.js` or `functions/index.ts` file to build that list, but since Google recommends several ways to [organize multiple functions](https://firebase.google.com/docs/functions/organize-functions), I knew I couldn't accurately do this for all projects. Instead, I decided to use a simple JSON array maintained by the developer (that's you) for my list of function names.
 
+To initialize your project to use this module, create a file called `functions.json` in your Firebase project folder (the project root, not the `functions` folder). Populate the file with a JSON array of function names as shown in the following example:
 
 ```typescript
 [
@@ -64,13 +66,29 @@ npm install -g ffdh
 ]
 ```
 
+**Note:** It doesn't matter if the list is sorted, but I sorted mine just because.
 
-
-
-
-
+Unfortunately, you'll have to manually manage this file's content as you add and delete functions from your project. If you want to propose an accurate (and easy to maintain) mechanism to do this automatically, please submit a pull request.
 
 ## Usage
+
+The `ffdh` command supports the following options:
+
+* `-V`, `--version`: Display the module's version number
+* `-s`, `--start`: Search the start of function name for a specific string
+* `-e`, `--end`: Search end of function name for a specific string
+* `-b`, `--batches`: Deploy a batch of functions of a specific size
+* `-bn`, `--batch`: The batch number to deploy
+* `-d`, `--debug`: Enable debug mode which displays additional information to the console during processing
+* `-h`, `--help`: Displays help content
+
+The following sections describe how to use them.
+
+### Deploying Functions in Batches
+
+
+
+### Deploying Functions via Search
 
 
 

@@ -72,7 +72,7 @@ Unfortunately, you'll have to manually manage this file's content as you add and
 
 ## Usage
 
-The `ffdh` command supports the following options:
+The `ffdh` command supports the following command-line options:
 
 * `-V`, `--version`: Display the module's version number
 * `-s`, `--start`: Search the start of function name for a specific string
@@ -85,6 +85,30 @@ The `ffdh` command supports the following options:
 The following sections describe how to use them.
 
 ### Deploying Functions in Batches
+
+If you have a big Functions project, the easiest way to deploy all the functions is to do them in batches.  With batch deployment, you decide how many batches you want and the program automatically manages deploying the right number of functions for each batch.
+
+Say for example that you wanted to deploy your functions in 4 batches, open a terminal window or command prompt in your Firebase project folder then execute the following command:
+
+```shell
+ffdh -b 4
+```
+
+This tells the deployment helper that you want to deploy in 4 batches and to deploy the first batch (when you omit the batch number [`-bn`], the helper assumes you want to deploy the first batch). The helper figures out how many functions to deploy in each batch, then gets to work. It doesn't do anything to deploy functions evenly across batches, so depending on the number of functions in your project, the last batch could be pretty small.
+
+You can also accomplish the same thing using the following command:
+
+```shell
+ffdh -b 4 -bn 1
+```
+
+To deploy subsequent batches, wait a little time to let Firebase reset its quota timer (which looks to be 100 seconds if the documentation is correct) then repeat the command using a different batch number:
+
+```shell
+ffdh -b 4 -bn 2
+```
+
+
 
 
 

@@ -108,17 +108,35 @@ To deploy subsequent batches, wait a little time to let Firebase reset its quota
 ffdh -b 4 -bn 2
 ```
 
-
-
-
+To deploy the functions, the helper simply builds that knarly `firebase deploy` command shown earlier, then executes the command.
 
 ### Deploying Functions via Search
 
+Sometimes you make changes to groups of functions, either functions that perform similar functions against different tables, or functions for a particular application area. The deployment helper accommodates this use case using search. When deploying functions, you can chose to select functions for deployment using a search string applied to the start and/or end of the function name.
 
+For example, to deploy all of the `company` functions in the project (shown in the functions list displayed earlier), you can deploy them using the following command:
 
+```shell
+ffdh -s company
+```
 
+This deploys all functions whose names begin with `company` ; in this example: the `companyDelete`, `companyFind`, `companyGet`, `companyList`, `companyUpdate` functions.
 
+If you recently modified all of the `Get` functions in the project, then you can deploy them using the following command:
 
+```shell
+ffdh -e Get
+```
+
+This deploys all functions in the project that end with the specified string; in this example: the `companyGet` and `contactGet` functions.
+
+You can also deploy functions using search strings for both the start and end of the function name:
+
+```shell
+ffdh -s company -e e
+```
+
+In this silly example, the helper would deploy all functions that started with `company` and ended with `e` which, for this example, happens to be `companyDelete` and `companyUpdate`.
 
 ***
 

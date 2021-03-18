@@ -1,10 +1,37 @@
 # Firebase Functions Deployment Helper (FFDH)
 
-Bacon ipsum dolor amet frankfurter filet mignon short loin, ground round bresaola pork belly ribeye shank. Biltong t-bone ground round pancetta meatball pork loin ham hock andouille porchetta sirloin. Swine ham hock pancetta ground round meatball corned beef chicken shankle porchetta brisket. Chicken jowl pastrami chislic filet mignon t-bone. Picanha shoulder pork loin porchetta prosciutto brisket swine t-bone shankle cupim.
+A simple Node CLI that simplifies the process of deploying Firebase Functions for large projects.
 
-Pastrami kevin corned beef tail ground round jowl, beef ribs spare ribs tenderloin fatback meatloaf tri-tip sausage. Venison t-bone brisket filet mignon leberkas short loin, ribeye kevin. Biltong prosciutto shankle ham hock leberkas beef. Venison pork loin t-bone flank. Ham hock swine sirloin, beef bacon turducken ball tip short ribs jerky. Sirloin beef ribs pig strip steak leberkas boudin bacon filet mignon tri-tip meatloaf brisket landjaeger prosciutto. Beef chicken salami alcatra beef ribs buffalo.
+As I started work on my first Firebase project, I quickly had a catalog of 57 functions I regularly deployed. Seemingly depending on how many functions I'd modified since my least deploy or on the time of day, I regularly received deployment errors and the `firebase deploy` command rarely deployed all of my functions. In seeking help from Google, I learned that there are [quota limits](https://firebase.google.com/docs/functions/quotas#quota_limits_for_firebase_cli_deployment) when deploying functions:
 
-Chuck biltong cow fatback salami beef. Bacon ball tip turducken rump. Picanha pork loin tail jowl, swine ribeye beef ribs beef chicken bacon capicola t-bone pork. Burgdoggen cow cupim venison, biltong meatloaf chuck turducken leberkas sirloin short ribs jerky salami pork loin. Meatloaf buffalo turkey sirloin. Cow kielbasa shankle beef ribs, corned beef t-bone capicola bresaola. Picanha ham hock shoulder, pork chop pig frankfurter ribeye prosciutto.
+For each function that the Firebase CLI deploys, these types of rate and time limits are affected:
+
+- API calls (READ) - 1 call per deployment, no matter how many functions
+  - Limit: 5000 per 100 seconds
+- API calls (WRITE) - 1 call per function
+  - Limit: 80 per 100 seconds
+
+Google's recommendation is to deploy the functions in batches, but since I was hacking around in my functions it was rather difficult to keep track of what I wanted to deploy and a pain to type the long batch deploy command:
+
+```shell
+firebase deploy --only functions:function1,functions:function2,functions:function3,functions:functionx
+```
+
+I found that if I did a full deploy multiple times, it would randomly fail on a different set of functions each time and I could deploy everything (usually) with two of these:
+
+```shell
+firebase deploy --only functions
+```
+
+Not the best solution, but it worked.
+
+After a while, it occurred to me that I could automate some of this. My functions catalog is organized around my backend application's record types (companies, contacts, campaigns, etc.) so I thought first about using command files (`.cmd`, `.bat`, `.sh`) for the different groups, but that would be a pain to implement and maintain. I didn't want 10 `.cmd` and 10 `.sh` scripts hanging around in my project. Also, sometimes I'd modify all of the project's `get` functions, so that approach wouldn't work there.
+
+I decided to build a simple CLI that enabled me to publish a subset of my functions - and here we are.
+
+The CLI command delivered here is `ffdh` (Firebase Functions Deployment Helper)
+
+
 
 ***
 

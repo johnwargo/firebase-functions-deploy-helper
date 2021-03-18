@@ -130,6 +130,8 @@ ffdh -e Get
 
 This deploys all functions in the project that end with the specified string; in this example: the `companyGet` and `contactGet` functions.
 
+**Note:** Search strings are case sensitive; if you used a search string of `get` you wouldn't get any matches since `Get` is capitalized in the function names.
+
 You can also deploy functions using search strings for both the start and end of the function name:
 
 ```shell

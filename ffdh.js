@@ -16,6 +16,7 @@ var EXIT_HEADING = chalk.red('Exiting:');
 var FIREBASE_CONFIG_FILE = 'firebase.json';
 var FUNCTIONS_FILE = 'functions.json';
 var FUNCTIONS_STRING = 'functions:';
+var MAX_BATCHES = 25;
 var functionsList;
 var log = logger();
 function checkFile(filePath) {
@@ -106,24 +107,16 @@ function isValidConfig() {
         return false;
     }
 }
-function processPercentage(pct, iteration) {
-    log.info("processPercentage(" + pct + ", " + iteration + ")");
-    var start, end;
-    var batchSize = Math.floor(functionsList.length * pct);
-    var remainder = functionsList.length % batchSize;
-    log.info("Function Count: " + functionsList.length);
-    log.info("Remainder: " + remainder);
-    if (iteration <= remainder) {
-        batchSize += 1;
-    }
-    log.info("Batch size: " + batchSize);
-    start = batchSize * (iteration - 1);
-    if (iteration > remainder) {
-        start += remainder;
-    }
-    end = start + batchSize - 1;
-    log.info("Returning from " + start + " to " + end);
-    return '';
+function processBatch(batches, batch) {
+    var resultsArray = [];
+    var batchSize = Math.ceil(functionsList.length / batches);
+    log.debug("Batch: " + batch + " of " + batches + ", size " + batchSize);
+    var start = batchSize * (batch - 1);
+    var end = start + batchSize;
+    log.debug("From " + start + " to " + (end - 1));
+    resultsArray = functionsList.slice(start, end);
+    resultsArray = resultsArray.map(function (func) { return FUNCTIONS_STRING + func; });
+    return resultsArray.join(',');
 }
 function processSearch(start, end) {
     var resultsArray = [];
@@ -153,8 +146,8 @@ console.log("Version: " + packageDotJSON.version);
 program.version(packageDotJSON.version);
 program.option('-s, --start <searchStr>', 'Search start of function name for <string>');
 program.option('-e, --end <searchStr>', 'Search end of function name for <string>');
-program.option('-p --percentage <percentage>', '');
-program.option('-i, --iteration <iteration>', '1');
+program.option('-b, --batches <number>', '');
+program.option('-bn, --batch <number>', '1');
 program.option('-d, --debug', 'Output extra information during operation');
 program.parse();
 var options = program.opts();
@@ -168,39 +161,39 @@ else {
 log.debug(options);
 if (isValidConfig()) {
     var strFunctionList = void 0;
-    if (options.percentage) {
-        options.iteration = options.iteration ? options.iteration : "1";
-        var pct = parseInt(options.percentage, 10);
-        var iter = parseInt(options.iteration, 10);
-        if (pct < 1 || pct > 100) {
-            log.info(chalk.red("\nInvalid percentage value: " + pct + " (Must be 1-100)"));
+    if (options.batches) {
+        options.batch = options.batch ? options.batch : "1";
+        var batches = parseInt(options.batches, 10);
+        if (batches < 1 || batches > MAX_BATCHES) {
+            log.info(chalk.red("\nInvalid iterations value: " + batches + " (Must be 1-" + MAX_BATCHES + ")"));
             process.exit(1);
         }
-        var ceiling = Math.ceil(100 / pct);
-        if (iter > ceiling) {
-            log.info(chalk.red("\nInvalid iteration value: " + iter + " (Must be 1-" + ceiling + ")"));
+        var batch = parseInt(options.batch, 10);
+        if (batch > MAX_BATCHES) {
+            log.info(chalk.red("\nInvalid iteration value: " + batch + " (Must be 1-" + MAX_BATCHES + ")"));
             process.exit(1);
         }
-        strFunctionList = processPercentage(pct / 100, iter);
+        strFunctionList = processBatch(batches, batch);
     }
     else {
+        if (!options.start && !options.end) {
+            log.info(chalk.red('\nNothing to do here (missing actionable parameters)'));
+            process.exit(1);
+        }
         strFunctionList = processSearch(options.start, options.end);
     }
     if (strFunctionList.length > 0) {
         var commandStr = COMMAND_ROOT + strFunctionList;
-        if (options.debug) {
-            log.info(commandStr);
-        }
-        else {
-            log.debug('Executing Firebase command');
+        log.info("\n" + commandStr);
+        if (!options.debug) {
             exec(commandStr, function (error, stdout, stderr) {
                 if (error) {
-                    log.error("error: " + error.message);
+                    log.error('\n' + chalk.red(error.message));
                 }
                 if (stderr) {
-                    log.error("stderr: " + stderr);
+                    log.error(chalk.red(stderr));
                 }
-                log.info("stdout: " + stdout);
+                log.info(stdout);
             });
         }
     }

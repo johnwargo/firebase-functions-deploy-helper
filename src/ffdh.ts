@@ -12,14 +12,11 @@
 // How to get a list of exported functions
 // https://stackoverflow.com/questions/25529290/node-js-module-how-to-get-list-of-exported-functions
 
-// modules
-// const boxen = require('boxen');
 const chalk = require('chalk');
 const { exec } = require("child_process");
 const fs = require('fs');
 const logger = require('cli-logger');
 const path = require('path');
-// https://www.npmjs.com/package/commander
 const program = require('commander');
 const shell = require('shelljs');
 
@@ -35,6 +32,7 @@ const EXIT_HEADING = chalk.red('Exiting:');
 const FIREBASE_CONFIG_FILE = 'firebase.json';
 const FUNCTIONS_FILE = 'functions.json';
 const FUNCTIONS_STRING = 'functions:';
+const MAX_BATCHES = 25;
 
 var functionsList: any;
 var log = logger();
@@ -133,30 +131,20 @@ function isValidConfig(): Boolean {
   }
 }
 
-function processPercentage(pct: number, iteration: number, iterations: number): string {
+function processBatch(batches: number, batch: number,): string {
+  let resultsArray: string[] = [];
+  let batchSize = Math.ceil(functionsList.length / batches);
+  log.debug(`Batch: ${batch} of ${batches}, size ${batchSize}`);
 
-  log.info(`processPercentage(${pct}, ${iteration}, ${iterations})`);
-
-  let start, end;
-  let batchSize = Math.floor(functionsList.length * pct);
-  const remainder = functionsList.length % batchSize;
-
-  log.info(`Function Count: ${functionsList.length}`);
-  log.info(`Remainder: ${remainder}`);
-
-  if (iteration <= remainder) {
-    batchSize += 1;
-  }
-  log.info(`Batch size: ${batchSize}`);
-  start = batchSize * (iteration - 1);
-
-  if (iteration > remainder) {
-    start += remainder;
-  }
-  end = start + batchSize - 1;
-  log.info(`Returning from ${start} to ${end}`);
-
-  return '';
+  const start = batchSize * (batch - 1);
+  const end = start + batchSize;
+  log.debug(`From ${start} to ${end - 1}`);
+  // grab from start to one less than end
+  resultsArray = functionsList.slice(start, end);
+  // Add 'functions:' to the beginning of every function name
+  resultsArray = resultsArray.map(func => FUNCTIONS_STRING + func);
+  // split the array into a comma-separated list
+  return resultsArray.join(',');
 }
 
 function processSearch(start: string, end: string): string {
@@ -188,8 +176,8 @@ console.log(`Version: ${packageDotJSON.version}`);
 program.version(packageDotJSON.version);
 program.option('-s, --start <searchStr>', 'Search start of function name for <string>');
 program.option('-e, --end <searchStr>', 'Search end of function name for <string>');
-program.option('-p --percentage <percentage>', '');
-program.option('-i, --iteration <iteration>', '1');
+program.option('-b, --batches <number>', '');
+program.option('-bn, --batch <number>', '1');
 program.option('-d, --debug', 'Output extra information during operation');
 program.parse();
 const options = program.opts();
@@ -206,48 +194,48 @@ if (isValidConfig()) {
 
   let strFunctionList: string;
 
-  if (options.percentage) {
+  if (options.batches) {
     // do we have i and not p? Set default iteration
-    options.iteration = options.iteration ? options.iteration : "1";
+    options.batch = options.batch ? options.batch : "1";
+
     // get numeric values for our parameters
-    const pct = parseInt(options.percentage, 10);
-    const iter = parseInt(options.iteration, 10);
-    // Do we have a valid percentage?
-    if (pct < 1 || pct > 100) {
-      log.info(chalk.red(`\nInvalid percentage value: ${pct} (Must be 1-100)`));
+    const batches = parseInt(options.batches, 10);
+    if (batches < 1 || batches > MAX_BATCHES) {
+      log.info(chalk.red(`\nInvalid iterations value: ${batches} (Must be 1-${MAX_BATCHES})`));
       process.exit(1);
     }
+
     // do we have a valid iteration?
-    const iterations = Math.ceil(100 / pct);
-    if (iter > iterations) {
-      log.info(chalk.red(`\nInvalid iteration value: ${iter} (Must be 1-${iterations})`));
+    const batch = parseInt(options.batch, 10);
+    if (batch > MAX_BATCHES) {
+      log.info(chalk.red(`\nInvalid iteration value: ${batch} (Must be 1-${MAX_BATCHES})`));
       process.exit(1);
     }
     // We got this far, we're good to go!
-    strFunctionList = processPercentage(pct / 100, iter, iterations);
+    strFunctionList = processBatch(batches, batch);
   } else {
+    // do we have start or end?
+    if (!options.start && !options.end) {
+      // nothing to do here, goodbye
+      log.info(chalk.red('\nNothing to do here (missing actionable parameters)'));
+      process.exit(1);
+    }
     strFunctionList = processSearch(options.start, options.end);
   }
 
   if (strFunctionList.length > 0) {
     const commandStr = COMMAND_ROOT + strFunctionList
-    if (options.debug) {
-      log.info(commandStr);
-    } else {
-      // execute the command
-      log.debug('Executing Firebase command');
+    log.info(`\n${commandStr}`);
+    if (!options.debug) {
       exec(commandStr, (error: any, stdout: any, stderr: any) => {
         if (error) {
-          log.error(`error: ${error.message}`);
-          // process.exit(1);
+          log.error('\n' + chalk.red(error.message));
         }
         if (stderr) {
-          log.error(`stderr: ${stderr}`);
-          // process.exit(1);
+          log.error(chalk.red(stderr));
         }
-        log.info(`stdout: ${stdout}`);
+        log.info(stdout);
       });
-      // process.exit(0);
     }
   } else {
     log.info(chalk.red('\nNo function match for specified options'));

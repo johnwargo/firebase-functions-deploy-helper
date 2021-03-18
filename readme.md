@@ -11,6 +11,8 @@ For each function that the Firebase CLI deploys, these types of rate and time li
 - API calls (WRITE) - 1 call per function
   - Limit: 80 per 100 seconds
 
+I'm not sure why my little 57-function project broke the quotas, but apparently they did.
+
 Google's recommendation is to deploy the functions in batches, but since I was hacking around in my functions it was rather difficult to keep track of what I wanted to deploy and a pain to type the long batch deploy command:
 
 ```shell

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 "use strict";
 var chalk = require('chalk');
-var exec = require("child_process").exec;
 var fs = require('fs');
 var logger = require('cli-logger');
 var path = require('path');
 var program = require('commander');
 var shell = require('shelljs');
+var spawn = require("child_process").spawn;
 var packageDotJSON = require('./package.json');
 var APP_NAME = '\nFirebase Functions Deployment Helper (ffdh)';
 var APP_AUTHOR = 'by John M. Wargo (https://johnwargo.com)';
@@ -14,7 +14,7 @@ var COMMAND_ROOT = 'firebase deploy --only ';
 var CURRENT_PATH = process.cwd();
 var EXIT_HEADING = chalk.red('Exiting:');
 var FIREBASE_CONFIG_FILE = 'firebase.json';
-var FUNCTIONS_FILE = 'functions.json';
+var FUNCTIONS_FILE = 'ffdh.json';
 var FUNCTIONS_STRING = 'functions:';
 var MAX_BATCHES = 25;
 var functionsList;
@@ -183,19 +183,10 @@ if (isValidConfig()) {
         strFunctionList = processSearch(options.start, options.end);
     }
     if (strFunctionList.length > 0) {
-        var commandStr = COMMAND_ROOT + strFunctionList;
-        log.info("\n" + commandStr);
-        if (!options.debug) {
-            exec(commandStr, function (error, stdout, stderr) {
-                if (error) {
-                    log.error('\n' + chalk.red(error.message));
-                }
-                if (stderr) {
-                    log.error(chalk.red(stderr));
-                }
-                log.info(stdout);
-            });
-        }
+        var shell_1 = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
+        shell_1.on('error', function (err) {
+            log.error(err);
+        });
     }
     else {
         log.info(chalk.red('\nNo function match for specified options'));

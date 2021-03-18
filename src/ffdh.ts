@@ -13,12 +13,12 @@
 // https://stackoverflow.com/questions/25529290/node-js-module-how-to-get-list-of-exported-functions
 
 const chalk = require('chalk');
-const { exec } = require("child_process");
 const fs = require('fs');
 const logger = require('cli-logger');
 const path = require('path');
 const program = require('commander');
 const shell = require('shelljs');
+const { spawn } = require("child_process");
 
 // https://stackoverflow.com/questions/9153571/is-there-a-way-to-get-version-from-package-json-in-nodejs-code
 const packageDotJSON = require('./package.json');
@@ -30,7 +30,7 @@ const COMMAND_ROOT = 'firebase deploy --only ';
 const CURRENT_PATH = process.cwd();
 const EXIT_HEADING = chalk.red('Exiting:');
 const FIREBASE_CONFIG_FILE = 'firebase.json';
-const FUNCTIONS_FILE = 'functions.json';
+const FUNCTIONS_FILE = 'ffdh.json';
 const FUNCTIONS_STRING = 'functions:';
 const MAX_BATCHES = 25;
 
@@ -224,19 +224,39 @@ if (isValidConfig()) {
   }
 
   if (strFunctionList.length > 0) {
-    const commandStr = COMMAND_ROOT + strFunctionList
-    log.info(`\n${commandStr}`);
-    if (!options.debug) {
-      exec(commandStr, (error: any, stdout: any, stderr: any) => {
-        if (error) {
-          log.error('\n' + chalk.red(error.message));
-        }
-        if (stderr) {
-          log.error(chalk.red(stderr));
-        }
-        log.info(stdout);
-      });
-    }
+    // https://stackoverflow.com/questions/27458502/how-to-run-interactive-shell-command-inside-node-js
+    const shell = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
+    shell.on('error', (err: any) => {
+      log.error(err);
+    });
+
+    // shell.on('close', (code: any) => { console.log('[shell] terminated :', code) });
+
+    // shell.stdout.on('data', (data: any) => {
+    //   console.log(`stdout: ${data}`);
+    // });
+
+    // shell.stderr.on('data', (data: any) => {
+    //   console.error(`stderr: ${data}`);
+    // });
+
+    // shell.on('close', (code: any) => {
+    //   console.log(`child process exited with code ${code}`);
+    // });
+
+    // const commandStr = COMMAND_ROOT + strFunctionList
+    // log.info(`\n${commandStr}`);
+    // if (!options.debug) {
+    //   exec(commandStr, (error: any, stdout: any, stderr: any) => {
+    //     if (error) {
+    //       log.error('\n' + chalk.red(error.message));
+    //     }
+    //     if (stderr) {
+    //       log.error(chalk.red(stderr));
+    //     }
+    //     log.info(stdout);
+    //   });
+    // }
   } else {
     log.info(chalk.red('\nNo function match for specified options'));
     process.exit(1);

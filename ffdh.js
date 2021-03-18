@@ -183,15 +183,7 @@ if (isValidConfig()) {
         strFunctionList = processSearch(options.start, options.end);
     }
     if (strFunctionList.length > 0) {
-        var cmd = spawn('firebase', ['deploy', '--only', strFunctionList]);
-        cmd.stdout.on('data', function (output) {
-            console.log('here1');
-            console.log(output.toString());
-        });
-        cmd.stderr.on('data', function (err) {
-            console.log('here2');
-            console.log(err.toString());
-        });
+        var cmd = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
         cmd.on('error', function (err) {
             console.log('here3');
             log.error(err);

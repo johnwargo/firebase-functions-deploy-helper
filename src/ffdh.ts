@@ -228,17 +228,18 @@ if (isValidConfig()) {
     //   log.error(err);
     // });
 
-    var cmd = spawn('firebase', ['deploy', '--only', strFunctionList]);
-    cmd.stdout.on('data', (output: any) => {
-      console.log('here1');
-      console.log(output.toString());
-    });
+    var cmd = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
+
+    // cmd.stdout.on('data', (output: any) => {
+    //   console.log('here1');
+    //   console.log(output.toString());
+    // });
 
     //Error handling
-    cmd.stderr.on('data', (err: any) => {
-      console.log('here2');
-      console.log(err.toString());
-    });
+    // cmd.stderr.on('data', (err: any) => {
+    //   console.log('here2');
+    //   console.log(err.toString());
+    // });
 
     cmd.on('error', (err: any) => {
       console.log('here3');

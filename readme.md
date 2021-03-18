@@ -14,7 +14,7 @@ For each function that the Firebase CLI deploys, these types of rate and time li
 Google's recommendation is to deploy the functions in batches, but since I was hacking around in my functions it was rather difficult to keep track of what I wanted to deploy and a pain to type the long batch deploy command:
 
 ```shell
-firebase deploy --only functions:function1,functions:function2,functions:function3,functions:functionx
+firebase deploy --only functions:function1,functions:function2,functions:function3,functions:functionX
 ```
 
 I found that if I did a full deploy multiple times, it would randomly fail on a different set of functions each time and I could deploy everything (usually) with two of these:
@@ -29,7 +29,52 @@ After a while, it occurred to me that I could automate some of this. My function
 
 I decided to build a simple CLI that enabled me to publish a subset of my functions - and here we are.
 
-The CLI command delivered here is `ffdh` (Firebase Functions Deployment Helper)
+The CLI command delivered here is `ffdh` (Firebase Functions Deployment Helper); it allows you to:
+
+* Deploy functions in batches. For example, you can define 5 batches, then issue separate commands to deploy each one of the batches. If you wait enough time between deploys (100 seconds as shown in the content above) then you can get around the Firebase quota limitations.
+* Deploy functions based on the start and/or the end of function names in your project
+
+## Installation
+
+To install the module, open a terminal window or command prompt and execute the following command:
+
+```shell
+npm install -g ffdh
+```
+
+
+
+## Initialization
+
+
+
+```typescript
+[
+    "companyDelete",
+    "companyFind",
+    "companyGet",
+    "companyList",
+    "companyUpdate",
+    "contactDelete",
+    "contactFind",
+    "contactGet",
+    "contactList",
+    "contactUpdate",
+    "dashGetStats"
+]
+```
+
+
+
+
+
+
+
+## Usage
+
+
+
+
 
 
 

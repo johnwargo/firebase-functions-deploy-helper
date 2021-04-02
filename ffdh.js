@@ -6,7 +6,7 @@ var logger = require('cli-logger');
 var path = require('path');
 var program = require('commander');
 var shell = require('shelljs');
-var spawn = require("child_process").spawn;
+var cp = require("child_process");
 var packageDotJSON = require('./package.json');
 var APP_NAME = '\nFirebase Functions Deployment Helper (ffdh)';
 var APP_AUTHOR = 'by John M. Wargo (https://johnwargo.com)';
@@ -51,14 +51,14 @@ function checkDirectory(filePath) {
     }
 }
 function isValidConfig() {
-    log.info(chalk.yellow('\nValidating Firebase project'));
+    log.debug(chalk.yellow('\nValidating Firebase project'));
     var filePath = path.join(CURRENT_PATH, FUNCTIONS_FILE);
     if (!checkFile(filePath)) {
         log.info(EXIT_HEADING + " Unable to locate the " + filePath + " file\n");
         return false;
     }
     else {
-        log.info("Located " + filePath);
+        log.debug("Located " + filePath);
         functionsList = require(filePath);
     }
     filePath = path.join(CURRENT_PATH, FIREBASE_CONFIG_FILE);
@@ -67,20 +67,20 @@ function isValidConfig() {
         return false;
     }
     else {
-        log.info("Located " + filePath);
+        log.debug("Located " + filePath);
     }
     log.debug("Loading Firebase configuration file (" + FIREBASE_CONFIG_FILE + ")");
     var firebaseConfig = require("./" + FIREBASE_CONFIG_FILE);
     var sourceStr = firebaseConfig.functions.source;
     if (sourceStr) {
         filePath = path.join(CURRENT_PATH, sourceStr);
-        console.log("Determined Firebase functions folder: " + filePath);
+        log.debug("Determined Firebase functions folder: " + filePath);
         if (!checkDirectory(filePath)) {
             log.info(EXIT_HEADING + " Unable to locate the " + filePath + " folder\n");
             return false;
         }
         else {
-            log.info("Located " + filePath);
+            log.debug("Located " + filePath);
         }
     }
     else {
@@ -97,9 +97,9 @@ function isValidConfig() {
             return false;
         }
         else {
-            log.info("Firebase command found at " + path.dirname(filePath));
+            log.debug("Firebase command found at " + path.dirname(filePath));
         }
-        log.info(chalk.green('We have a Firebase project'));
+        log.debug(chalk.green('We have a Firebase project'));
         return true;
     }
     else {
@@ -183,15 +183,14 @@ if (isValidConfig()) {
         strFunctionList = processSearch(options.start, options.end);
     }
     if (strFunctionList.length > 0) {
-        var cmd = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
-        cmd.on('error', function (err) {
-            console.log('here3');
-            log.error(err);
-        });
-        cmd.on('close', function (code) {
-            console.log('here4');
-            console.log(code);
-        });
+        try {
+            var cmd = "firebase deploy --only " + strFunctionList;
+            log.info(chalk.yellow('Executing:'), cmd);
+            cp.execSync(cmd, { stdio: 'inherit' });
+        }
+        catch (e) {
+            log.warn(e);
+        }
     }
     else {
         log.info(chalk.red('\nNo function match for specified options'));

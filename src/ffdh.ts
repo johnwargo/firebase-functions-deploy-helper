@@ -18,7 +18,8 @@ const logger = require('cli-logger');
 const path = require('path');
 const program = require('commander');
 const shell = require('shelljs');
-const { spawn } = require("child_process");
+const cp = require("child_process");
+// const { execSync } = require("child_process");
 
 // https://stackoverflow.com/questions/9153571/is-there-a-way-to-get-version-from-package-json-in-nodejs-code
 const packageDotJSON = require('./package.json');
@@ -70,7 +71,7 @@ function checkDirectory(filePath: string): boolean {
 
 function isValidConfig(): Boolean {
   // Make sure this is a Flutter project
-  log.info(chalk.yellow('\nValidating Firebase project'));
+  log.debug(chalk.yellow('\nValidating Firebase project'));
 
   // Does the functions list exist?  
   let filePath = path.join(CURRENT_PATH, FUNCTIONS_FILE);
@@ -78,7 +79,7 @@ function isValidConfig(): Boolean {
     log.info(`${EXIT_HEADING} Unable to locate the ${filePath} file\n`);
     return false;
   } else {
-    log.info(`Located ${filePath}`);
+    log.debug(`Located ${filePath}`);
     functionsList = require(filePath);
   }
 
@@ -88,7 +89,7 @@ function isValidConfig(): Boolean {
     log.info(`${EXIT_HEADING} Unable to locate the ${filePath} file\n`);
     return false;
   } else {
-    log.info(`Located ${filePath}`);
+    log.debug(`Located ${filePath}`);
   }
 
   // load the Firebase config file
@@ -99,12 +100,12 @@ function isValidConfig(): Boolean {
   if (sourceStr) {
     // does the path exist?
     filePath = path.join(CURRENT_PATH, sourceStr);
-    console.log(`Determined Firebase functions folder: ${filePath}`);
+    log.debug(`Determined Firebase functions folder: ${filePath}`);
     if (!checkDirectory(filePath)) {
       log.info(`${EXIT_HEADING} Unable to locate the ${filePath} folder\n`);
       return false;
     } else {
-      log.info(`Located ${filePath}`);
+      log.debug(`Located ${filePath}`);
     }
   } else {
     log.info(EXIT_HEADING + '${EXIT_HEADING} Unable to determine the Functions source folder\n');
@@ -121,9 +122,9 @@ function isValidConfig(): Boolean {
       log.info(EXIT_HEADING + ' Unable to locate the Firebase command\n');
       return false;
     } else {
-      log.info(`Firebase command found at ${path.dirname(filePath)}`);
+      log.debug(`Firebase command found at ${path.dirname(filePath)}`);
     }
-    log.info(chalk.green('We have a Firebase project'));
+    log.debug(chalk.green('We have a Firebase project'));
     return true;
   } else {
     log.info(EXIT_HEADING + ' Unable to locate the Firebase command\n');
@@ -222,62 +223,13 @@ if (isValidConfig()) {
   }
 
   if (strFunctionList.length > 0) {
-    // https://stackoverflow.com/questions/27458502/how-to-run-interactive-shell-command-inside-node-js
-    // const shell = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
-    // shell.on('error', (err: any) => {
-    //   log.error(err);
-    // });
-
-    var cmd = spawn('firebase', ['deploy', '--only', strFunctionList], { stdio: 'inherit' });
-
-    // cmd.stdout.on('data', (output: any) => {
-    //   console.log('here1');
-    //   console.log(output.toString());
-    // });
-
-    //Error handling
-    // cmd.stderr.on('data', (err: any) => {
-    //   console.log('here2');
-    //   console.log(err.toString());
-    // });
-
-    cmd.on('error', (err: any) => {
-      console.log('here3');
-      log.error(err);
-    });
-
-    cmd.on('close', (code: string) => {
-      console.log('here4');
-      console.log(code);
-    });
-
-    // shell.on('close', (code: any) => { console.log('[shell] terminated :', code) });
-
-    // shell.stdout.on('data', (data: any) => {
-    //   console.log(`stdout: ${data}`);
-    // });
-
-    // shell.stderr.on('data', (data: any) => {
-    //   console.error(`stderr: ${data}`);
-    // });
-
-    // shell.on('close', (code: any) => {
-    //   console.log(`child process exited with code ${code}`);
-    // });
-
-    // const commandStr = COMMAND_ROOT + strFunctionList
-    // log.info(`\n${commandStr}`);
-    // if (!options.debug) {
-    //   exec(commandStr, (error: any, stdout: any, stderr: any) => {
-    //     if (error) {
-    //       log.error('\n' + chalk.red(error.message));
-    //     }
-    //     if (stderr) {
-    //       log.error(chalk.red(stderr));
-    //     }
-    //     log.info(stdout);
-    //   });
-    // }
+    try {
+      var cmd = `firebase deploy --only ${strFunctionList}`;
+      log.info(chalk.yellow('Executing:'), cmd);
+      cp.execSync(cmd, { stdio: 'inherit' });
+    } catch (e) {
+      log.warn(e);
+    }
   } else {
     log.info(chalk.red('\nNo function match for specified options'));
     process.exit(1);

@@ -25,9 +25,9 @@
   },
   "homepage": "https://github.com/johnwargo/firebase-functions-deploy#readme",
   "dependencies": {
-    "commander": "^7.1.0",
     "chalk": "^4.1.0",
     "cli-logger": "^0.5.40",
+    "commander": "^7.1.0",
     "shelljs": "^0.8.4"
   },
   "devDependencies": {

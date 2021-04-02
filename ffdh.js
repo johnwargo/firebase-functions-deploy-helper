@@ -20,7 +20,7 @@ var MAX_BATCHES = 25;
 var functionsList;
 var log = logger();
 function checkFile(filePath) {
-    log.debug("checkFile(" + filePath + ")");
+    log.debug("Locating " + filePath);
     try {
         return fs.existsSync(filePath);
     }
@@ -30,7 +30,7 @@ function checkFile(filePath) {
     }
 }
 function checkDirectory(filePath) {
-    log.debug("checkDirectory(" + filePath + ")");
+    log.debug("Locating " + filePath);
     if (fs.existsSync(filePath)) {
         try {
             var stats = fs.statSync(filePath);
@@ -141,8 +141,6 @@ function processSearch(start, end) {
     return resultsArray.join(',');
 }
 console.log(APP_NAME);
-console.log(APP_AUTHOR);
-console.log("Version: " + packageDotJSON.version);
 program.version(packageDotJSON.version);
 program.option('-s, --start <searchStr>', 'Search start of function name for <string>');
 program.option('-e, --end <searchStr>', 'Search end of function name for <string>');
@@ -152,32 +150,33 @@ program.option('-d, --debug', 'Output extra information during operation');
 program.parse();
 var options = program.opts();
 if (options.debug) {
-    console.log('\nEnabling debug mode');
     log.level(log.DEBUG);
 }
 else {
     log.level(log.INFO);
 }
-log.debug(options);
+log.debug(APP_AUTHOR);
+log.debug("Version: " + packageDotJSON.version);
+log.debug('Command Options:', options);
 if (isValidConfig()) {
     var strFunctionList = void 0;
     if (options.batches) {
         options.batch = options.batch ? options.batch : "1";
         var batches = parseInt(options.batches, 10);
         if (batches < 1 || batches > MAX_BATCHES) {
-            log.info(chalk.red("\nInvalid iterations value: " + batches + " (Must be 1-" + MAX_BATCHES + ")"));
+            log.info(chalk.red("Invalid iterations value: " + batches + " (Must be 1-" + MAX_BATCHES + ")"));
             process.exit(1);
         }
         var batch = parseInt(options.batch, 10);
         if (batch < 1 || batch > batches) {
-            log.info(chalk.red("\nInvalid iteration value: " + batch + " (Must be 1-" + batches + ")"));
+            log.info(chalk.red("Invalid iteration value: " + batch + " (Must be 1-" + batches + ")"));
             process.exit(1);
         }
         strFunctionList = processBatch(batches, batch);
     }
     else {
         if (!options.start && !options.end) {
-            log.info(chalk.red('\nNothing to do here (missing actionable parameters)'));
+            log.info(chalk.red('Nothing to do here (missing actionable parameters)'));
             process.exit(1);
         }
         strFunctionList = processSearch(options.start, options.end);
@@ -193,7 +192,7 @@ if (isValidConfig()) {
         }
     }
     else {
-        log.info(chalk.red('\nNo function match for specified options'));
+        log.info(chalk.red('No function match for specified options'));
         process.exit(1);
     }
 }

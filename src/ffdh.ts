@@ -39,7 +39,8 @@ var functionsList: any;
 var log = logger();
 
 function checkFile(filePath: string): boolean {
-  log.debug(`checkFile(${filePath})`);
+  // log.debug(`checkFile(${filePath})`);
+  log.debug(`Locating ${filePath}`);
   try {
     return fs.existsSync(filePath);
   } catch (err) {
@@ -49,7 +50,8 @@ function checkFile(filePath: string): boolean {
 }
 
 function checkDirectory(filePath: string): boolean {
-  log.debug(`checkDirectory(${filePath})`);
+  log.debug(`Locating ${filePath}`);
+  // log.debug(`checkDirectory(${filePath})`);
   // does the folder exist?
   if (fs.existsSync(filePath)) {
     // Check to see if it's a folder
@@ -170,8 +172,6 @@ function processSearch(start: string, end: string): string {
 }
 
 console.log(APP_NAME);
-console.log(APP_AUTHOR);
-console.log(`Version: ${packageDotJSON.version}`);
 program.version(packageDotJSON.version);
 program.option('-s, --start <searchStr>', 'Search start of function name for <string>');
 program.option('-e, --end <searchStr>', 'Search end of function name for <string>');
@@ -181,33 +181,32 @@ program.option('-d, --debug', 'Output extra information during operation');
 program.parse();
 const options = program.opts();
 if (options.debug) {
-  console.log('\nEnabling debug mode');
   log.level(log.DEBUG);
 } else {
   log.level(log.INFO);
 }
+// write the version number to the console
+log.debug(APP_AUTHOR);
+log.debug(`Version: ${packageDotJSON.version}`);
 // Write the command line options to the console
-log.debug(options);
+log.debug('Command Options:', options);
 
 if (isValidConfig()) {
-
   let strFunctionList: string;
 
   if (options.batches) {
-    // do we have i and not p? Set default iteration
+    // do we have -b and not -bn? then set the default batch number (1)
     options.batch = options.batch ? options.batch : "1";
-
     // get numeric values for our parameters
     const batches = parseInt(options.batches, 10);
     if (batches < 1 || batches > MAX_BATCHES) {
-      log.info(chalk.red(`\nInvalid iterations value: ${batches} (Must be 1-${MAX_BATCHES})`));
+      log.info(chalk.red(`Invalid iterations value: ${batches} (Must be 1-${MAX_BATCHES})`));
       process.exit(1);
     }
-
     // do we have a valid iteration?
     const batch = parseInt(options.batch, 10);
     if (batch < 1 || batch > batches) {
-      log.info(chalk.red(`\nInvalid iteration value: ${batch} (Must be 1-${batches})`));
+      log.info(chalk.red(`Invalid iteration value: ${batch} (Must be 1-${batches})`));
       process.exit(1);
     }
     // We got this far, we're good to go!
@@ -216,7 +215,7 @@ if (isValidConfig()) {
     // do we have start or end?
     if (!options.start && !options.end) {
       // nothing to do here, goodbye
-      log.info(chalk.red('\nNothing to do here (missing actionable parameters)'));
+      log.info(chalk.red('Nothing to do here (missing actionable parameters)'));
       process.exit(1);
     }
     strFunctionList = processSearch(options.start, options.end);
@@ -231,7 +230,7 @@ if (isValidConfig()) {
       log.warn(e);
     }
   } else {
-    log.info(chalk.red('\nNo function match for specified options'));
+    log.info(chalk.red('No function match for specified options'));
     process.exit(1);
   }
 

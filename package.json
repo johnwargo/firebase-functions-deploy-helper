@@ -18,12 +18,12 @@
     "firebase",
     "npm"
   ],
-  "author": "JOhn M. Wargo",
+  "author": "John M. Wargo",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/johnwargo/firebase-functions-deploy/issues"
+    "url": "https://github.com/johnwargo/firebase-functions-deploy-helper/issues"
   },
-  "homepage": "https://github.com/johnwargo/firebase-functions-deploy#readme",
+  "homepage": "https://github.com/johnwargo/firebase-functions-deploy-helper",
   "dependencies": {
     "chalk": "^4.1.0",
     "cli-logger": "^0.5.40",

@@ -33,8 +33,8 @@ I decided to build a simple CLI that enabled me to publish a subset of my functi
 
 The CLI command delivered here is `ffdh` (Firebase Functions Deployment Helper); it allows you to:
 
-* Deploy functions in batches. For example, you can define 5 batches, then issue separate commands to deploy each one of the batches. If you wait enough time between deploys (100 seconds as shown in the content above) then you can get around the Firebase quota limitations.
-* Deploy functions based on the start and/or the end of function names in your project
+- Deploy functions in batches. For example, you can define 5 batches, then issue separate commands to deploy each one of the batches. If you wait enough time between deploys (100 seconds as shown in the content above) then you can get around the Firebase quota limitations.
+- Deploy functions based on the start and/or the end of function names in your project
 
 ## Installation
 
@@ -50,7 +50,7 @@ This installs the `ffdh` command in the global scope.
 
 To operate, the `ffdh` command requires access to the list of functions in your project. I know I could parse the imports in the project's `functions/index.js` or `functions/index.ts` file to build that list, but since Google recommends several ways to [organize multiple functions](https://firebase.google.com/docs/functions/organize-functions), I knew I couldn't accurately do this for all projects. Instead, I decided to use a simple JSON array maintained by the developer (that's you) for my list of function names.
 
-To initialize your project to use this module, create a file called `functions.json` in your Firebase project folder (the project root, not the `functions` folder). Populate the file with a JSON array of function names as shown in the following example:
+To initialize your project to use this module, create a file called `ffdh.json` in your Firebase project folder (the project root, not the `functions` folder). Populate the file with a JSON array of function names as shown in the following example:
 
 ```typescript
 [
@@ -96,7 +96,7 @@ Say for example that you wanted to deploy your functions in 4 batches, open a te
 ffdh -b 4
 ```
 
-This tells the deployment helper that you want to deploy in 4 batches and to deploy the first batch (when you omit the batch number [`-bn`], the helper assumes you want to deploy the first batch). The helper figures out how many functions to deploy in each batch, then gets to work. It doesn't do anything to deploy functions evenly across batches, so depending on the number of functions in your project, the last batch could be pretty small.
+This tells the deployment helper that you want to deploy in 4 batches and to deploy the first batch (when you omit the batch number [`-bn`], the helper assumes you want to deploy the first batch, so it sets -bn to 1). The helper figures out how many functions to deploy in each batch, then gets to work. It doesn't do anything to deploy functions evenly across batches, so depending on the number of functions in your project, the last batch could be rather small.
 
 You can also accomplish the same thing using the following command:
 
@@ -104,13 +104,13 @@ You can also accomplish the same thing using the following command:
 ffdh -b 4 -bn 1
 ```
 
-To deploy subsequent batches, wait a little time to let Firebase reset its quota timer (which looks to be 100 seconds if the documentation is correct) then repeat the command using a different batch number:
+To deploy subsequent batches, wait a little time to let Firebase reset its quota timer (which looks to be 100 seconds, if the documentation is correct) then repeat the command using a different batch number:
 
 ```shell
 ffdh -b 4 -bn 2
 ```
 
-To deploy the functions, the helper simply builds that knarly `firebase deploy` command shown earlier, then executes the command.
+To deploy the functions, the helper simply builds that knarly `firebase deploy` command shown earlier, then executes the command automatically.
 
 ### Deploying Functions via Search
 

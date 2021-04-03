@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions-deploy",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "Simplifies deployment of a subset of Firebase Functions (because of Firebase deployment quota limits)",
   "main": "ffdh.js",
   "bin": {

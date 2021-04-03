@@ -1,4 +1,4 @@
-# Firebase Functions Deployment Helper (FFDH)
+# Firebase Functions Deploy Helper (FFDH)
 
 A simple Node CLI that simplifies the process of deploying Firebase Functions for large projects.
 

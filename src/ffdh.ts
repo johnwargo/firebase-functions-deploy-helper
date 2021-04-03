@@ -25,9 +25,9 @@ const cp = require("child_process");
 const packageDotJSON = require('./package.json');
 
 // constants
-const APP_NAME = '\nFirebase Functions Deployment Helper (ffdh)';
+const APP_NAME = '\nFirebase Functions Deploy Helper (ffdh)';
 const APP_AUTHOR = 'by John M. Wargo (https://johnwargo.com)';
-const COMMAND_ROOT = 'firebase deploy --only ';
+// const COMMAND_ROOT = 'firebase deploy --only ';
 const CURRENT_PATH = process.cwd();
 const EXIT_HEADING = chalk.red('Exiting:');
 const FIREBASE_CONFIG_FILE = 'firebase.json';

@@ -44,7 +44,7 @@ To install the module, open a terminal window or command prompt and execute the 
 npm install -g firebase-functions-deploy-helper
 ```
 
-This installs the `ffdh` command in the global scope.
+This installs a `ffdh` command in the global scope.
 
 ## Initialization
 

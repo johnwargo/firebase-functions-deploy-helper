@@ -41,7 +41,7 @@ The CLI command delivered here is `ffdh` (Firebase Functions Deployment Helper);
 To install the module, open a terminal window or command prompt and execute the following command:
 
 ```shell
-npm install -g ffdh
+npm install -g firebase-functions-deploy-helper
 ```
 
 This installs the `ffdh` command in the global scope.

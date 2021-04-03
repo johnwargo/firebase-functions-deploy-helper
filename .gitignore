@@ -5,4 +5,5 @@ functions/
 # Files
 .gitignore
 package-lock.json
+ffdh.json
 firebase.json

@@ -19,17 +19,17 @@ var MAX_BATCHES = 25;
 var functionsList;
 var log = logger();
 function checkFile(filePath) {
-    log.debug("Locating " + filePath);
+    log.debug("Locating ".concat(filePath));
     try {
         return fs.existsSync(filePath);
     }
     catch (err) {
-        log.error("checkFile error: " + err);
+        log.error("checkFile error: ".concat(err));
         return false;
     }
 }
 function checkDirectory(filePath) {
-    log.debug("Locating " + filePath);
+    log.debug("Locating ".concat(filePath));
     if (fs.existsSync(filePath)) {
         try {
             var stats = fs.statSync(filePath);
@@ -41,7 +41,7 @@ function checkDirectory(filePath) {
             }
         }
         catch (err) {
-            log.error("checkDirectory error: " + err);
+            log.error("checkDirectory error: ".concat(err));
             return false;
         }
     }
@@ -53,50 +53,67 @@ function isValidConfig() {
     log.debug(chalk.yellow('\nValidating Firebase project'));
     var filePath = path.join(CURRENT_PATH, FUNCTIONS_FILE);
     if (!checkFile(filePath)) {
-        log.info(EXIT_HEADING + " Unable to locate the " + filePath + " file\n");
+        log.info("".concat(EXIT_HEADING, " Unable to locate the ").concat(filePath, " file\n"));
         return false;
     }
     else {
-        log.debug("Located " + filePath);
+        log.debug("Located ".concat(filePath));
         functionsList = require(filePath);
     }
     filePath = path.join(CURRENT_PATH, FIREBASE_CONFIG_FILE);
     if (!checkFile(filePath)) {
-        log.info(EXIT_HEADING + " Unable to locate the " + filePath + " file\n");
+        log.info("".concat(EXIT_HEADING, " Unable to locate the ").concat(filePath, " file\n"));
         return false;
     }
     else {
-        log.debug("Located " + filePath);
+        log.debug("Located ".concat(filePath));
     }
-    log.debug("Loading Firebase configuration file (" + FIREBASE_CONFIG_FILE + ")");
-    var firebaseConfig = require("./" + FIREBASE_CONFIG_FILE);
-    var sourceStr = firebaseConfig.functions.source;
+    log.debug("Loading Firebase configuration from ".concat(FIREBASE_CONFIG_FILE));
+    var firebaseConfig;
+    try {
+        firebaseConfig = require("./".concat(FIREBASE_CONFIG_FILE));
+        log.debug("Firebase project configuration loaded");
+    }
+    catch (err) {
+        log.info("".concat(EXIT_HEADING, " Unable to load the ").concat(FIREBASE_CONFIG_FILE, " file\n"));
+        return false;
+    }
+    var sourceStr = '';
+    if (firebaseConfig.functions.source) {
+        sourceStr = firebaseConfig.functions.source;
+    }
+    if (sourceStr.length === 0) {
+        sourceStr = 'functions';
+        log.debug("Functions folder location: '".concat(sourceStr, "' (default)"));
+    }
+    else {
+        log.debug("Functions folder location: '".concat(sourceStr, "'"));
+    }
     if (sourceStr) {
         filePath = path.join(CURRENT_PATH, sourceStr);
-        log.debug("Determined Firebase functions folder: " + filePath);
         if (!checkDirectory(filePath)) {
-            log.info(EXIT_HEADING + " Unable to locate the " + filePath + " folder\n");
+            log.info("".concat(EXIT_HEADING, " Unable to locate the ").concat(filePath, " folder\n"));
             return false;
         }
         else {
-            log.debug("Located " + filePath);
+            log.debug("Located ".concat(filePath));
         }
     }
     else {
-        log.info(EXIT_HEADING + '${EXIT_HEADING} Unable to determine the Functions source folder\n');
+        log.info("".concat(EXIT_HEADING, " Unable to determine the Functions source folder\n"));
         return false;
     }
     log.debug('Looking for Firebase CLI command');
     var res = shell.which('firebase');
     if (res) {
         filePath = res.toString();
-        log.debug("firebase command at " + filePath);
+        log.debug("firebase command at ".concat(filePath));
         if (!filePath) {
             log.info(EXIT_HEADING + ' Unable to locate the Firebase command\n');
             return false;
         }
         else {
-            log.debug("Firebase command found at " + path.dirname(filePath));
+            log.debug("Firebase command found at ".concat(path.dirname(filePath)));
         }
         log.debug(chalk.green('We have a Firebase project'));
         return true;
@@ -109,10 +126,10 @@ function isValidConfig() {
 function processBatch(batches, batch) {
     var resultsArray = [];
     var batchSize = Math.ceil(functionsList.length / batches);
-    log.debug("Batch: " + batch + " of " + batches + ", size " + batchSize);
+    log.debug("Batch: ".concat(batch, " of ").concat(batches, ", size ").concat(batchSize));
     var start = batchSize * (batch - 1);
     var end = start + batchSize;
-    log.debug("From " + start + " to " + (end - 1));
+    log.debug("From ".concat(start, " to ").concat(end - 1));
     resultsArray = functionsList.slice(start, end);
     resultsArray = resultsArray.map(function (func) { return FUNCTIONS_STRING + func; });
     return resultsArray.join(',');
@@ -155,7 +172,7 @@ else {
     log.level(log.INFO);
 }
 log.debug(APP_AUTHOR);
-log.debug("Version: " + packageDotJSON.version);
+log.debug("Version: ".concat(packageDotJSON.version));
 log.debug('Command Options:', options);
 if (isValidConfig()) {
     var strFunctionList = void 0;
@@ -163,12 +180,12 @@ if (isValidConfig()) {
         options.batch = options.batch ? options.batch : "1";
         var batches = parseInt(options.batches, 10);
         if (batches < 1 || batches > MAX_BATCHES) {
-            log.info(chalk.red("Invalid iterations value: " + batches + " (Must be 1-" + MAX_BATCHES + ")"));
+            log.info(chalk.red("Invalid iterations value: ".concat(batches, " (Must be 1-").concat(MAX_BATCHES, ")")));
             process.exit(1);
         }
         var batch = parseInt(options.batch, 10);
         if (batch < 1 || batch > batches) {
-            log.info(chalk.red("Invalid iteration value: " + batch + " (Must be 1-" + batches + ")"));
+            log.info(chalk.red("Invalid iteration value: ".concat(batch, " (Must be 1-").concat(batches, ")")));
             process.exit(1);
         }
         strFunctionList = processBatch(batches, batch);
@@ -182,7 +199,7 @@ if (isValidConfig()) {
     }
     if (strFunctionList.length > 0) {
         try {
-            var cmd = "firebase deploy --only " + strFunctionList;
+            var cmd = "firebase deploy --only ".concat(strFunctionList);
             log.info(chalk.yellow('Executing:'), cmd);
             cp.execSync(cmd, { stdio: 'inherit' });
         }

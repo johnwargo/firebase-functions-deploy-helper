@@ -95,14 +95,39 @@ function isValidConfig(): Boolean {
   }
 
   // load the Firebase config file
-  log.debug(`Loading Firebase configuration file (${FIREBASE_CONFIG_FILE})`);
-  const firebaseConfig = require(`./${FIREBASE_CONFIG_FILE}`);
-  // get the path for the functions folder
-  const sourceStr = firebaseConfig.functions.source;
+  log.debug(`Loading Firebase configuration from ${FIREBASE_CONFIG_FILE}`);
+  var firebaseConfig;
+  try {
+    firebaseConfig = require(`./${FIREBASE_CONFIG_FILE}`);
+    log.debug(`Firebase project configuration loaded`);
+  } catch (err) {
+    log.info(`${EXIT_HEADING} Unable to load the ${FIREBASE_CONFIG_FILE} file\n`);
+    return false
+  }
+
+  /**
+   * 12/16/2021 - later versions of Firebase don't populate the `source` property, 
+   * so I refactored this to set a default value if it's not set.
+   */
+  var sourceStr: string = '';
+  // do we have a `source` property in the functions object?
+  if (firebaseConfig.functions.source) {
+    // then use it for the functions folder location
+    sourceStr = firebaseConfig.functions.source;
+  }
+  // Did we get a source folder?  
+  if (sourceStr.length === 0) {
+    // use the default folder name
+    sourceStr = 'functions';
+    log.debug(`Functions folder location: '${sourceStr}' (default)`);
+  } else {
+    log.debug(`Functions folder location: '${sourceStr}'`);
+  }
+
+  // do we have a value?  We should, but check anyway
   if (sourceStr) {
     // does the path exist?
     filePath = path.join(CURRENT_PATH, sourceStr);
-    log.debug(`Determined Firebase functions folder: ${filePath}`);
     if (!checkDirectory(filePath)) {
       log.info(`${EXIT_HEADING} Unable to locate the ${filePath} folder\n`);
       return false;
@@ -110,7 +135,7 @@ function isValidConfig(): Boolean {
       log.debug(`Located ${filePath}`);
     }
   } else {
-    log.info(EXIT_HEADING + '${EXIT_HEADING} Unable to determine the Functions source folder\n');
+    log.info(`${EXIT_HEADING} Unable to determine the Functions source folder\n`);
     return false;
   }
 
